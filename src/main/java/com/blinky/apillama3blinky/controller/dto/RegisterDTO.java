@@ -13,14 +13,24 @@ public class RegisterDTO {
     @Size(min = 6, message = "Password must be at least 6 characters long")
     private String password;
 
+    private String username;
+
     // Default constructor
     public RegisterDTO() {
     }
 
     // Constructor with fields
+    public RegisterDTO(String email, String password, String username) {
+        this.email = email;
+        this.password = password;
+        this.username = username;
+    }
+
+    // Constructor without username for backward compatibility
     public RegisterDTO(String email, String password) {
         this.email = email;
         this.password = password;
+        this.username = null; // Default value
     }
 
     // Getters and setters
@@ -38,5 +48,13 @@ public class RegisterDTO {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

@@ -19,6 +19,9 @@ public class User {
     @Column(nullable = false)
     private boolean isAdmin = false;
 
+    @Column(nullable = true)
+    private String username;
+
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Conversation conversation;
 
@@ -57,5 +60,13 @@ public class User {
 
     public void setAdmin(boolean isAdmin) {
         this.isAdmin = isAdmin;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

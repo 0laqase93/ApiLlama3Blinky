@@ -1,6 +1,8 @@
 package com.blinky.apillama3blinky.exception;
 
 import com.blinky.apillama3blinky.controller.response.ErrorResponse;
+import com.blinky.apillama3blinky.util.ErrorMessageTranslator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -18,32 +20,36 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @Autowired
+    private ErrorMessageTranslator translator;
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleUserNotFoundException(UserNotFoundException ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, translator.translate(ex.getMessage()));
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(EmailAlreadyInUseException.class)
     public ResponseEntity<ErrorResponse> handleEmailAlreadyInUseException(EmailAlreadyInUseException ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, translator.translate(ex.getMessage()));
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidPasswordException.class)
     public ResponseEntity<ErrorResponse> handleInvalidPasswordException(InvalidPasswordException ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED, translator.translate(ex.getMessage()));
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "Validation failed");
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, translator.translate("Validation failed"));
         List<String> errors = new ArrayList<>();
 
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
+            // We don't translate field names and validation messages as they might be dynamic
             errors.add(fieldName + ": " + errorMessage);
         });
 
@@ -53,7 +59,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED, "Invalid credentials: User does not exist or password is incorrect");
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.UNAUTHORIZED, 
+            translator.translate("Invalid credentials: User does not exist or password is incorrect"));
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
@@ -64,7 +71,7 @@ public class GlobalExceptionHandler {
 
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR, 
-            "An unexpected error occurred: " + ex.getMessage()
+            translator.translate("An unexpected error occurred:") + " " + ex.getMessage()
         );
 
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);

@@ -49,18 +49,19 @@ public class AuthService {
         User user = new User();
         user.setEmail(registerDTO.getEmail());
         user.setPassword(registerDTO.getPassword());
+        user.setUsername(registerDTO.getUsername());
         // Set isAdmin to false by default for new registrations
         user.setAdmin(false);
 
         User savedUser = userRepository.save(user);
 
         // Create UserDetails for the new user
-        org.springframework.security.core.userdetails.User userDetails = 
-            new org.springframework.security.core.userdetails.User(
-                savedUser.getEmail(), 
-                savedUser.getPassword(), 
-                java.util.Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"))
-            );
+        org.springframework.security.core.userdetails.User userDetails =
+                new org.springframework.security.core.userdetails.User(
+                        savedUser.getEmail(),
+                        savedUser.getPassword(),
+                        java.util.Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"))
+                );
 
         // Generate JWT token
         String token = jwtUtil.generateToken(userDetails);

@@ -14,10 +14,11 @@ public class UserMapper {
         }
 
         return new UserDTO(
-            user.getId(),
-            user.getEmail(),
-            null,  // Don't include password in response
-            user.isAdmin()
+                user.getId(),
+                user.getEmail(),
+                null,  // Don't include password in response
+                user.isAdmin(),
+                user.getUsername()
         );
     }
 
@@ -36,6 +37,7 @@ public class UserMapper {
         user.setEmail(userDTO.getEmail());
         user.setPassword(userDTO.getPassword());
         user.setAdmin(userDTO.isAdmin());
+        user.setUsername(userDTO.getUsername());
         return user;
     }
 
@@ -47,6 +49,9 @@ public class UserMapper {
             user.setPassword(userDTO.getPassword());
         }
         user.setAdmin(userDTO.isAdmin());
+        if (userDTO.getUsername() != null) {
+            user.setUsername(userDTO.getUsername());
+        }
         return user;
     }
 }

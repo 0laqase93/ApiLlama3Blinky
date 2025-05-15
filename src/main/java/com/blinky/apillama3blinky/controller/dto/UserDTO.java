@@ -17,16 +17,28 @@ public class UserDTO {
 
     private boolean isAdmin;
 
+    private String username;
+
     // Default constructor
     public UserDTO() {
     }
 
     // Constructor with fields
+    public UserDTO(Long id, String email, String password, boolean isAdmin, String username) {
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.isAdmin = isAdmin;
+        this.username = username;
+    }
+
+    // Constructor with fields without username
     public UserDTO(Long id, String email, String password, boolean isAdmin) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.isAdmin = isAdmin;
+        this.username = null; // Default value
     }
 
     // Constructor without isAdmin for backward compatibility
@@ -35,6 +47,7 @@ public class UserDTO {
         this.email = email;
         this.password = password;
         this.isAdmin = false; // Default value
+        this.username = null; // Default value
     }
 
     // Getters and setters
@@ -68,5 +81,13 @@ public class UserDTO {
 
     public void setAdmin(boolean isAdmin) {
         this.isAdmin = isAdmin;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

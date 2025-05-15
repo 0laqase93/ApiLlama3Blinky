@@ -45,6 +45,7 @@ public class UserService {
         user.setEmail(userDTO.getEmail());
         user.setPassword(userDTO.getPassword());
         user.setAdmin(userDTO.isAdmin());
+        user.setUsername(userDTO.getUsername());
         return userRepository.save(user);
     }
 
@@ -54,6 +55,7 @@ public class UserService {
         user.setEmail(userDetails.getEmail());
         user.setPassword(userDetails.getPassword());
         user.setAdmin(userDetails.isAdmin());
+        user.setUsername(userDetails.getUsername());
         return userRepository.save(user);
     }
 
