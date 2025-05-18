@@ -1,13 +1,15 @@
 package com.blinky.apillama3blinky.service;
 
+import com.blinky.apillama3blinky.controller.dto.ResetPasswordDTO;
 import com.blinky.apillama3blinky.controller.response.AuthResponse;
 import com.blinky.apillama3blinky.exception.EmailAlreadyInUseException;
 import com.blinky.apillama3blinky.exception.InvalidPasswordException;
-import com.blinky.apillama3blinky.exception.UserNotFoundException;
+import com.blinky.apillama3blinky.exception.ResourceNotFoundException;
 import com.blinky.apillama3blinky.mapping.UserMapper;
 import com.blinky.apillama3blinky.model.User;
 import com.blinky.apillama3blinky.repository.UserRepository;
 import com.blinky.apillama3blinky.security.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,18 +23,20 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final UserService userService;
 
-    public AuthService(UserRepository userRepository, JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
+    public AuthService(UserRepository userRepository, JwtUtil jwtUtil, AuthenticationManager authenticationManager, UserService userService) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
+        this.userService = userService;
     }
 
     @Transactional
     public User registerUser(User user) {
         // Check if user with the same email already exists
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            throw new EmailAlreadyInUseException("Email already in use");
+            throw new EmailAlreadyInUseException("El correo electrónico ya está en uso");
         }
         // Set isAdmin to false by default for new registrations
         user.setAdmin(false);
@@ -43,7 +47,7 @@ public class AuthService {
     public AuthResponse registerUserFromDTO(com.blinky.apillama3blinky.controller.dto.RegisterDTO registerDTO) {
         // Check if user with the same email already exists
         if (userRepository.findByEmail(registerDTO.getEmail()).isPresent()) {
-            throw new EmailAlreadyInUseException("Email already in use");
+            throw new EmailAlreadyInUseException("El correo electrónico ya está en uso");
         }
 
         User user = new User();
@@ -84,16 +88,73 @@ public class AuthService {
 
             // Get the user from the database
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
 
             // Return the token and user information
             return new AuthResponse(token, UserMapper.toDTO(user));
         } catch (Exception e) {
             // Handle authentication failure
             if (e.getMessage().contains("Bad credentials")) {
-                throw new InvalidPasswordException("Invalid password");
+                throw new InvalidPasswordException("Contraseña inválida");
             }
             throw e;
         }
+    }
+
+    @Transactional
+    public User resetPasswordFromToken(String token, String newPassword) {
+        // Extract the email from the token
+        String email = jwtUtil.extractUsername(token);
+        if (email == null) {
+            throw new IllegalArgumentException("Token inválido");
+        }
+
+        // Reset the password
+        return userService.resetPassword(email, newPassword);
+    }
+
+    @Transactional
+    public User resetPasswordFromRequest(HttpServletRequest request, String newPassword) {
+        // Extract the token from the Authorization header
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Se requiere token de autorización");
+        }
+
+        // Extract the token
+        String token = authHeader.substring(7);
+
+        // Reset the password using the token
+        return resetPasswordFromToken(token, newPassword);
+    }
+    @Transactional(readOnly = true)
+    public boolean verifyPasswordFromToken(String token, String password) {
+        // Extract the email from the token
+        String email = jwtUtil.extractUsername(token);
+        if (email == null) {
+            throw new IllegalArgumentException("Token inválido");
+        }
+
+        // Get the user from the database
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
+
+        // Compare the provided password with the stored password
+        return user.getPassword().equals(password);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean verifyPasswordFromRequest(HttpServletRequest request, String password) {
+        // Extract the token from the Authorization header
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Se requiere token de autorización");
+        }
+
+        // Extract the token
+        String token = authHeader.substring(7);
+
+        // Verify the password using the token
+        return verifyPasswordFromToken(token, password);
     }
 }

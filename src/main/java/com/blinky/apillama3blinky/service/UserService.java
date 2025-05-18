@@ -1,6 +1,6 @@
 package com.blinky.apillama3blinky.service;
 
-import com.blinky.apillama3blinky.exception.UserNotFoundException;
+import com.blinky.apillama3blinky.exception.ResourceNotFoundException;
 import com.blinky.apillama3blinky.model.User;
 import com.blinky.apillama3blinky.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -25,13 +25,13 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + id));
     }
 
     @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
     }
 
     @Transactional
@@ -63,5 +63,12 @@ public class UserService {
     public void deleteUser(Long id) {
         User user = getUserById(id);
         userRepository.delete(user);
+    }
+
+    @Transactional
+    public User resetPassword(String email, String newPassword) {
+        User user = getUserByEmail(email);
+        user.setPassword(newPassword);
+        return userRepository.save(user);
     }
 }

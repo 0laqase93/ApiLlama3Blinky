@@ -6,23 +6,23 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
 public class OllamaDTO {
-    @NotBlank(message = "Model name is required")
+    @NotBlank
     private String model;
 
-    @NotBlank(message = "Prompt is required")
+    @NotBlank
     private String prompt;
 
     private boolean stream;
 
-    @Min(value = 0, message = "Temperature must be at least 0")
-    @Max(value = 1, message = "Temperature must be at most 1")
+    @Min(value = 0)
+    @Max(value = 1)
     private double temperature;
 
-    @Min(value = 0, message = "TopP must be at least 0")
-    @Max(value = 1, message = "TopP must be at most 1")
+    @Min(value = 0)
+    @Max(value = 1)
     private double topP;
 
-    @Positive(message = "NumPredict must be positive")
+    @Positive
     private int numPredict;
 
     public OllamaDTO(String model, String prompt, boolean stream) {

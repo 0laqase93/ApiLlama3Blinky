@@ -5,13 +5,10 @@ import com.blinky.apillama3blinky.controller.dto.OllamaDTO;
 import com.blinky.apillama3blinky.controller.dto.PromptDTO;
 import com.blinky.apillama3blinky.controller.response.OllamaResponse;
 import com.blinky.apillama3blinky.controller.response.PromptResponse;
+import com.blinky.apillama3blinky.exception.ResourceNotFoundException;
 import com.blinky.apillama3blinky.mapping.OllamaMapping;
 import com.blinky.apillama3blinky.mapping.PromptMapping;
-import com.blinky.apillama3blinky.model.AIResponse;
-import com.blinky.apillama3blinky.model.Conversation;
-import com.blinky.apillama3blinky.model.Message;
-import com.blinky.apillama3blinky.model.User;
-import com.blinky.apillama3blinky.model.UserMessage;
+import com.blinky.apillama3blinky.model.*;
 import com.blinky.apillama3blinky.repository.AIResponseRepository;
 import com.blinky.apillama3blinky.repository.ConversationRepository;
 import com.blinky.apillama3blinky.repository.UserMessageRepository;
@@ -56,6 +53,7 @@ public class LlamaApiService {
 
     @Transactional
     public PromptResponse sendPrompt(PromptDTO promptDTO) {
+        System.out.println(promptDTO.getUserId());
         User user = findUserById(promptDTO.getUserId());
         Conversation conversation = getOrCreateConversation(user);
 
@@ -69,7 +67,7 @@ public class LlamaApiService {
 
     private User findUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
     }
 
     private Conversation getOrCreateConversation(User user) {
@@ -158,8 +156,8 @@ public class LlamaApiService {
 
             // Find the corresponding AI response
             aiResponseRepository.findByUserMessageId(userMessage.getId())
-                    .ifPresent(aiResponse -> 
-                        sb.append(ASSISTANT_ROLE).append(": ").append(aiResponse.getContent()).append("\n"));
+                    .ifPresent(aiResponse ->
+                            sb.append(ASSISTANT_ROLE).append(": ").append(aiResponse.getContent()).append("\n"));
         }
 
         return sb.toString();

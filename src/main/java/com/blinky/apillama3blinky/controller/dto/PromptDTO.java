@@ -3,7 +3,7 @@ package com.blinky.apillama3blinky.controller.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public class PromptDTO {
-    @NotBlank(message = "Prompt is required")
+    @NotBlank
     private String prompt;
     private Long userId;
 
