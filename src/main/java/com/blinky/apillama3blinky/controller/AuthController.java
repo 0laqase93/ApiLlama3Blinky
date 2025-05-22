@@ -3,12 +3,9 @@ package com.blinky.apillama3blinky.controller;
 import com.blinky.apillama3blinky.controller.dto.LoginDTO;
 import com.blinky.apillama3blinky.controller.dto.RegisterDTO;
 import com.blinky.apillama3blinky.controller.dto.ResetPasswordDTO;
-import com.blinky.apillama3blinky.controller.dto.UserDTO;
 import com.blinky.apillama3blinky.controller.dto.VerifyPasswordDTO;
 import com.blinky.apillama3blinky.controller.response.AuthResponse;
 import com.blinky.apillama3blinky.exception.UserNotFoundException;
-import com.blinky.apillama3blinky.mapping.UserMapper;
-import com.blinky.apillama3blinky.model.User;
 import com.blinky.apillama3blinky.security.JwtUtil;
 import com.blinky.apillama3blinky.service.AuthService;
 import com.blinky.apillama3blinky.service.UserService;
@@ -17,7 +14,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -77,5 +73,10 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
         }
+    }
+
+    @GetMapping("/ping")
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("Pong!");
     }
 }

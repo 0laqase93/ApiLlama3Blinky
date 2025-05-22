@@ -18,16 +18,25 @@ public class AIResponse {
     @ManyToOne
     @JoinColumn(name = "conversation_id")
     private Conversation conversation;
-    
+
     @OneToOne
     @JoinColumn(name = "user_message_id")
     private UserMessage userMessage;
+
+    @ManyToOne
+    @JoinColumn(name = "personality_id")
+    private Personality personality;
 
     public AIResponse() {
     }
 
     public AIResponse(String content) {
         this.content = content;
+    }
+
+    public AIResponse(String content, Personality personality) {
+        this.content = content;
+        this.personality = personality;
     }
 
     // Getters and setters
@@ -54,12 +63,20 @@ public class AIResponse {
     public void setConversation(Conversation conversation) {
         this.conversation = conversation;
     }
-    
+
     public UserMessage getUserMessage() {
         return userMessage;
     }
-    
+
     public void setUserMessage(UserMessage userMessage) {
         this.userMessage = userMessage;
+    }
+
+    public Personality getPersonality() {
+        return personality;
+    }
+
+    public void setPersonality(Personality personality) {
+        this.personality = personality;
     }
 }

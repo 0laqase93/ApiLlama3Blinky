@@ -19,7 +19,7 @@ public class PromptMapping {
 
     /**
      * Filters out special characters from the input string, keeping only
-     * alphanumeric characters, periods, commas, and square brackets.
+     * alphanumeric characters, Spanish special characters, basic punctuation, and square brackets.
      * 
      * @param input The string to filter
      * @return The filtered string
@@ -30,7 +30,7 @@ public class PromptMapping {
         }
         // First remove newline characters
         String withoutNewlines = input.replace("\n", "");
-        // Then keep only alphanumeric characters, spaces, periods, commas, and square brackets
-        return withoutNewlines.replaceAll("[^a-zA-Z0-9 .,\\[\\]]", "");
+        // Mantener caracteres alfanuméricos, espacios, puntuación básica y caracteres especiales españoles
+        return withoutNewlines.replaceAll("[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9 .,¿¡\\[\\]!?]", "");
     }
 }
