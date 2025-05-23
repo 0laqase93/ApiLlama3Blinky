@@ -1,9 +1,9 @@
 package com.blinky.apillama3blinky.controller;
 
 import com.blinky.apillama3blinky.controller.dto.UserDTO;
-import com.blinky.apillama3blinky.exception.UserNotFoundException;
+import com.blinky.apillama3blinky.controller.dto.UserUpdateDTO;
+import com.blinky.apillama3blinky.controller.response.UserResponseDTO;
 import com.blinky.apillama3blinky.mapping.UserMapper;
-import com.blinky.apillama3blinky.model.User;
 import com.blinky.apillama3blinky.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -23,33 +23,28 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(UserMapper.toDTOList(users));
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        return ResponseEntity.ok(UserMapper.toResponseDTOList(userService.getAllUsers()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
-        return ResponseEntity.ok(UserMapper.toDTO(user));
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(UserMapper.toResponseDTO(userService.getUserById(id)));
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<UserDTO> getUserByEmail(@PathVariable String email) {
-        User user = userService.getUserByEmail(email);
-        return ResponseEntity.ok(UserMapper.toDTO(user));
+    public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable String email) {
+        return ResponseEntity.ok(UserMapper.toResponseDTO(userService.getUserByEmail(email)));
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
-        User createdUser = userService.createUserFromDTO(userDTO);
-        return new ResponseEntity<>(UserMapper.toDTO(createdUser), HttpStatus.CREATED);
+    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
+        return new ResponseEntity<>(UserMapper.toResponseDTO(userService.createUserFromDTO(userDTO)), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserDTO userDTO) {
-        User updatedUser = userService.updateUser(id, UserMapper.toEntity(userDTO));
-        return ResponseEntity.ok(UserMapper.toDTO(updatedUser));
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO userUpdateDTO) {
+        return ResponseEntity.ok(UserMapper.toResponseDTO(userService.updateUser(id, userUpdateDTO)));
     }
 
     @DeleteMapping("/{id}")

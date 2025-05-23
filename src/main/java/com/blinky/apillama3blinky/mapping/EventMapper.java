@@ -9,14 +9,8 @@ import com.blinky.apillama3blinky.model.User;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Utility class for mapping between Event entities and DTOs
- */
 public class EventMapper {
 
-    /**
-     * Convert Event entity to EventDTO
-     */
     public static EventDTO toDTO(Event event) {
         if (event == null) {
             return null;
@@ -33,9 +27,6 @@ public class EventMapper {
         );
     }
 
-    /**
-     * Convert list of Event entities to list of EventDTOs
-     */
     public static List<EventDTO> toDTOList(List<Event> events) {
         if (events == null) {
             return null;
@@ -46,9 +37,6 @@ public class EventMapper {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Create a new Event entity from EventCreateDTO and User
-     */
     public static Event toEntity(EventCreateDTO dto, User user) {
         if (dto == null) {
             return null;
@@ -65,10 +53,6 @@ public class EventMapper {
         return event;
     }
 
-    /**
-     * Update an existing Event entity from EventUpdateDTO
-     * Only updates fields that are not null in the DTO
-     */
     public static void updateEntityFromDTO(EventUpdateDTO dto, Event event) {
         if (dto == null || event == null) {
             return;

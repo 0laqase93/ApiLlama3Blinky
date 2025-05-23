@@ -1,15 +1,20 @@
 package com.blinky.apillama3blinky.service;
 
+import com.blinky.apillama3blinky.controller.dto.LoginDTO;
 import com.blinky.apillama3blinky.controller.dto.ResetPasswordDTO;
+import com.blinky.apillama3blinky.controller.dto.VerifyPasswordDTO;
 import com.blinky.apillama3blinky.controller.response.AuthResponse;
 import com.blinky.apillama3blinky.exception.EmailAlreadyInUseException;
 import com.blinky.apillama3blinky.exception.InvalidPasswordException;
 import com.blinky.apillama3blinky.exception.ResourceNotFoundException;
+import com.blinky.apillama3blinky.exception.UserNotFoundException;
 import com.blinky.apillama3blinky.mapping.UserMapper;
 import com.blinky.apillama3blinky.model.User;
 import com.blinky.apillama3blinky.repository.UserRepository;
 import com.blinky.apillama3blinky.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -75,16 +80,16 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public AuthResponse loginUser(String email, String password) {
+    public AuthResponse loginUser(LoginDTO loginDTO) {
         try {
             // Authenticate the user
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(email, password)
+                    new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword())
             );
 
             // Get the user from the database
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
+            User user = userRepository.findByEmail(loginDTO.getEmail())
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + loginDTO.getEmail()));
 
             // Generate JWT token with admin status and userId
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -116,13 +121,7 @@ public class AuthService {
     @Transactional
     public User resetPasswordFromRequest(HttpServletRequest request, String newPassword) {
         // Extract the token from the Authorization header
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Se requiere token de autorización");
-        }
-
-        // Extract the token
-        String token = authHeader.substring(7);
+        String token = jwtUtil.getTokenFromRequestForAuth(request);
 
         // Reset the password using the token
         return resetPasswordFromToken(token, newPassword);
@@ -146,15 +145,58 @@ public class AuthService {
     @Transactional(readOnly = true)
     public boolean verifyPasswordFromRequest(HttpServletRequest request, String password) {
         // Extract the token from the Authorization header
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new IllegalArgumentException("Se requiere token de autorización");
-        }
-
-        // Extract the token
-        String token = authHeader.substring(7);
+        String token = jwtUtil.getTokenFromRequestForAuth(request);
 
         // Verify the password using the token
         return verifyPasswordFromToken(token, password);
+    }
+
+    /**
+     * Resets a user's password and returns a ResponseEntity with the result.
+     * This method handles all exceptions and returns appropriate HTTP status codes.
+     */
+    @Transactional
+    public ResponseEntity<Boolean> resetPasswordWithResponse(ResetPasswordDTO resetPasswordDTO, HttpServletRequest request) {
+        try {
+            // Reset the password using the service
+            resetPasswordFromRequest(request, resetPasswordDTO.getNewPassword());
+
+            // Return true if password was reset successfully
+            return ResponseEntity.ok(true);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+
+    /**
+     * Verifies a user's password and returns a ResponseEntity with the result.
+     * This method handles all exceptions and returns appropriate HTTP status codes.
+     */
+    @Transactional(readOnly = true)
+    public ResponseEntity<Boolean> verifyPasswordWithResponse(VerifyPasswordDTO verifyPasswordDTO, HttpServletRequest request) {
+        try {
+            // Verify the password using the service
+            boolean isPasswordValid = verifyPasswordFromRequest(request, verifyPasswordDTO.getPassword());
+
+            // Return the result directly
+            return ResponseEntity.ok(isPasswordValid);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(false);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+
+    /**
+     * Simple ping endpoint that returns "Pong!".
+     */
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("Pong!");
     }
 }

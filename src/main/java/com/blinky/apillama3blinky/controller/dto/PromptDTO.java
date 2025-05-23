@@ -3,14 +3,12 @@ package com.blinky.apillama3blinky.controller.dto;
 import jakarta.validation.constraints.NotBlank;
 
 public class PromptDTO {
-    @NotBlank
+    @NotBlank(message = "El prompt no puede estar vacío")
     private String prompt;
     private Long userId;
     private Long personalityId;
 
-    // Constructor, getters y setters
     public PromptDTO() {
-        // Default constructor for JSON deserialization
     }
 
     public PromptDTO(String prompt) {

@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public class VerifyPasswordDTO {
 
-    @NotBlank
+    @NotBlank(message = "La contraseña no puede estar vacía")
     private String password;
 
     // Default constructor

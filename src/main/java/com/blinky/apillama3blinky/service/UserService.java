@@ -1,6 +1,9 @@
 package com.blinky.apillama3blinky.service;
 
+import com.blinky.apillama3blinky.controller.dto.UserDTO;
+import com.blinky.apillama3blinky.controller.dto.UserUpdateDTO;
 import com.blinky.apillama3blinky.exception.ResourceNotFoundException;
+import com.blinky.apillama3blinky.mapping.UserMapper;
 import com.blinky.apillama3blinky.model.User;
 import com.blinky.apillama3blinky.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -35,27 +38,14 @@ public class UserService {
     }
 
     @Transactional
-    public User createUser(User user) {
+    public User createUserFromDTO(UserDTO userDTO) {
+        User user = UserMapper.toUser(userDTO);
         return userRepository.save(user);
     }
 
     @Transactional
-    public User createUserFromDTO(com.blinky.apillama3blinky.controller.dto.UserDTO userDTO) {
-        User user = new User();
-        user.setEmail(userDTO.getEmail());
-        user.setPassword(userDTO.getPassword());
-        user.setAdmin(userDTO.isAdmin());
-        user.setUsername(userDTO.getUsername());
-        return userRepository.save(user);
-    }
-
-    @Transactional
-    public User updateUser(Long id, User userDetails) {
-        User user = getUserById(id);
-        user.setEmail(userDetails.getEmail());
-        user.setPassword(userDetails.getPassword());
-        user.setAdmin(userDetails.isAdmin());
-        user.setUsername(userDetails.getUsername());
+    public User updateUser(Long id, UserUpdateDTO userUpdateDTO) {
+        User user = UserMapper.toUser(id, userUpdateDTO);
         return userRepository.save(user);
     }
 

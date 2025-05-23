@@ -6,23 +6,23 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
 public class OllamaDTO {
-    @NotBlank
+    @NotBlank(message = "El modelo no puede estar vacío")
     private String model;
 
-    @NotBlank
+    @NotBlank(message = "El prompt no puede estar vacío")
     private String prompt;
 
     private boolean stream;
 
-    @Min(value = 0)
-    @Max(value = 1)
+    @Min(value = 0, message = "La temperatura no puede ser menor que 0")
+    @Max(value = 1, message = "La temperatura no puede ser mayor que 1")
     private double temperature;
 
-    @Min(value = 0)
-    @Max(value = 1)
+    @Min(value = 0, message = "El valor de topP no puede ser menor que 0")
+    @Max(value = 1, message = "El valor de topP no puede ser mayor que 1")
     private double topP;
 
-    @Positive
+    @Positive(message = "El número de predicciones debe ser positivo")
     private int numPredict;
 
     public OllamaDTO(String model, String prompt, boolean stream) {

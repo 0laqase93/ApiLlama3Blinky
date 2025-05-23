@@ -17,20 +17,11 @@ public class PromptMapping {
         return new PromptResponse(filteredResponse);
     }
 
-    /**
-     * Filters out special characters from the input string, keeping only
-     * alphanumeric characters, Spanish special characters, basic punctuation, and square brackets.
-     * 
-     * @param input The string to filter
-     * @return The filtered string
-     */
     private static String filterSpecialCharacters(String input) {
         if (input == null) {
             return "";
         }
-        // First remove newline characters
         String withoutNewlines = input.replace("\n", "");
-        // Mantener caracteres alfanuméricos, espacios, puntuación básica y caracteres especiales españoles
         return withoutNewlines.replaceAll("[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ0-9 .,¿¡\\[\\]!?]", "");
     }
 }

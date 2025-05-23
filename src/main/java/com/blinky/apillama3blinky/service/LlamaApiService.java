@@ -1,6 +1,5 @@
 package com.blinky.apillama3blinky.service;
 
-import com.blinky.apillama3blinky.config.PromptConfig;
 import com.blinky.apillama3blinky.controller.dto.OllamaDTO;
 import com.blinky.apillama3blinky.controller.dto.PromptDTO;
 import com.blinky.apillama3blinky.controller.response.OllamaResponse;
@@ -36,7 +35,6 @@ public class LlamaApiService {
     private String iaModel;
 
     private final OllamaService iaService;
-    private final PromptService promptService;
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
     private final UserMessageRepository userMessageRepository;
@@ -44,14 +42,12 @@ public class LlamaApiService {
     private final PersonalityService personalityService;
 
     public LlamaApiService(OllamaService iaService,
-                           PromptService promptService,
                            UserRepository userRepository,
                            ConversationRepository conversationRepository,
                            UserMessageRepository userMessageRepository,
                            AIResponseRepository aiResponseRepository,
                            PersonalityService personalityService) {
         this.iaService = iaService;
-        this.promptService = promptService;
         this.userRepository = userRepository;
         this.conversationRepository = conversationRepository;
         this.userMessageRepository = userMessageRepository;
