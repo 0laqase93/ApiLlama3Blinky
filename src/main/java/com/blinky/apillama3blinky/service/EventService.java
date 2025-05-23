@@ -4,7 +4,6 @@ import com.blinky.apillama3blinky.controller.dto.EventCreateDTO;
 import com.blinky.apillama3blinky.controller.dto.EventUpdateDTO;
 import com.blinky.apillama3blinky.exception.EventException;
 import com.blinky.apillama3blinky.exception.ResourceNotFoundException;
-import com.blinky.apillama3blinky.exception.UserNotFoundException;
 import com.blinky.apillama3blinky.mapping.EventMapper;
 import com.blinky.apillama3blinky.model.Event;
 import com.blinky.apillama3blinky.model.User;
@@ -38,6 +37,14 @@ public class EventService {
     }
 
     /**
+     * Get all events (for admin users)
+     */
+    @Transactional(readOnly = true)
+    public List<Event> getAllEvents() {
+        return eventRepository.findAll();
+    }
+
+    /**
      * Get a specific event by ID
      * Validates that the event belongs to the specified user
      */
@@ -52,6 +59,16 @@ public class EventService {
         }
 
         return event;
+    }
+
+    /**
+     * Get a specific event by ID for admin users
+     * Does not validate that the event belongs to a specific user
+     */
+    @Transactional(readOnly = true)
+    public Event getEventByIdForAdmin(Long eventId) {
+        return eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Evento no encontrado con id: " + eventId));
     }
 
     /**
@@ -83,9 +100,35 @@ public class EventService {
         Event existingEvent = getEventById(eventUpdateDTO.getId(), userId);
 
         // Determine the start and end times for validation
-        LocalDateTime startTime = eventUpdateDTO.getStartTime() != null ? 
+        LocalDateTime startTime = eventUpdateDTO.getStartTime() != null ?
                 eventUpdateDTO.getStartTime() : existingEvent.getStartTime();
-        LocalDateTime endTime = eventUpdateDTO.getEndTime() != null ? 
+        LocalDateTime endTime = eventUpdateDTO.getEndTime() != null ?
+                eventUpdateDTO.getEndTime() : existingEvent.getEndTime();
+
+        // Validate date times
+        validateEventTimes(startTime, endTime);
+
+        // Update the event
+        EventMapper.updateEntityFromDTO(eventUpdateDTO, existingEvent);
+
+        // Save and return the updated event
+        return eventRepository.save(existingEvent);
+    }
+
+    /**
+     * Update an existing event for admin users
+     * Does not validate that the event belongs to a specific user
+     * Validates that startTime is before endTime if both are provided
+     */
+    @Transactional
+    public Event updateEventForAdmin(EventUpdateDTO eventUpdateDTO) {
+        // Get the existing event without user validation
+        Event existingEvent = getEventByIdForAdmin(eventUpdateDTO.getId());
+
+        // Determine the start and end times for validation
+        LocalDateTime startTime = eventUpdateDTO.getStartTime() != null ?
+                eventUpdateDTO.getStartTime() : existingEvent.getStartTime();
+        LocalDateTime endTime = eventUpdateDTO.getEndTime() != null ?
                 eventUpdateDTO.getEndTime() : existingEvent.getEndTime();
 
         // Validate date times
@@ -111,6 +154,19 @@ public class EventService {
         eventRepository.delete(event);
     }
 
+    /**
+     * Delete an event for admin users
+     * Does not validate that the event belongs to a specific user
+     */
+    @Transactional
+    public void deleteEventForAdmin(Long eventId) {
+        // Get the event without user validation
+        Event event = getEventByIdForAdmin(eventId);
+
+        // Delete the event
+        eventRepository.delete(event);
+    }
+
 
     /**
      * Find events for a user by title
@@ -122,6 +178,18 @@ public class EventService {
         }
 
         return eventRepository.findByUserIdAndTitleContainingIgnoreCase(userId, title);
+    }
+
+    /**
+     * Find all events by title (for admin users)
+     */
+    @Transactional(readOnly = true)
+    public List<Event> findAllEventsByTitle(String title) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new EventException("El título de búsqueda no puede estar vacío");
+        }
+
+        return eventRepository.findByTitleContainingIgnoreCase(title);
     }
 
     /**

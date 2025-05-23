@@ -18,7 +18,7 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration:86400000}") // 24 hours in milliseconds
+    @Value("${jwt.expiration}")
     private long expiration;
 
     public String extractUsername(String token) {
@@ -27,6 +27,14 @@ public class JwtUtil {
 
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
+    }
+
+    public Boolean extractIsAdmin(String token) {
+        return extractClaim(token, claims -> claims.get("isAdmin", Boolean.class));
+    }
+
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -44,6 +52,13 @@ public class JwtUtil {
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, userDetails.getUsername());
+    }
+
+    public String generateToken(UserDetails userDetails, boolean isAdmin, Long userId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("isAdmin", isAdmin);
+        claims.put("userId", userId);
         return createToken(claims, userDetails.getUsername());
     }
 

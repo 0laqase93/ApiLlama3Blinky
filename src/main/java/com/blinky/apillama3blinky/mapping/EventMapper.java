@@ -23,13 +23,13 @@ public class EventMapper {
         }
 
         return new EventDTO(
-            event.getId(),
-            event.getTitle(),
-            event.getStartTime(),
-            event.getEndTime(),
-            event.getUser() != null ? event.getUser().getId() : null,
-            event.getLocation(),
-            event.getDescription()
+                event.getId(),
+                event.getTitle(),
+                event.getStartTime(),
+                event.getEndTime(),
+                event.getUser() != null ? event.getUser().getId() : null,
+                event.getLocation(),
+                event.getDescription()
         );
     }
 
@@ -42,8 +42,8 @@ public class EventMapper {
         }
 
         return events.stream()
-            .map(EventMapper::toDTO)
-            .collect(Collectors.toList());
+                .map(EventMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -73,10 +73,6 @@ public class EventMapper {
         if (dto == null || event == null) {
             return;
         }
-
-        // Ensure the ID is set - this is critical for JPA to recognize this as an update
-        // rather than an insert operation
-        event.setId(dto.getId());
 
         if (dto.getTitle() != null) {
             event.setTitle(dto.getTitle());

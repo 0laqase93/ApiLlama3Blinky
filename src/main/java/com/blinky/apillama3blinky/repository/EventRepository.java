@@ -31,4 +31,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByUserIdAndTitleContainingIgnoreCase(
             @Param("userId") Long userId,
             @Param("title") String title);
+
+    /**
+     * Find all events by title (case insensitive, partial match)
+     * Used by admin users to search across all events
+     */
+    @Query("SELECT e FROM Event e WHERE LOWER(e.title) LIKE LOWER(CONCAT('%', :title, '%'))")
+    List<Event> findByTitleContainingIgnoreCase(@Param("title") String title);
 }

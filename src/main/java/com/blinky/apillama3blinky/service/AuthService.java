@@ -67,8 +67,8 @@ public class AuthService {
                         java.util.Collections.singletonList(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"))
                 );
 
-        // Generate JWT token
-        String token = jwtUtil.generateToken(userDetails);
+        // Generate JWT token with admin status and userId
+        String token = jwtUtil.generateToken(userDetails, savedUser.isAdmin(), savedUser.getId());
 
         // Return the token and user information
         return new AuthResponse(token, UserMapper.toDTO(savedUser));
@@ -82,13 +82,13 @@ public class AuthService {
                     new UsernamePasswordAuthenticationToken(email, password)
             );
 
-            // Generate JWT token
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String token = jwtUtil.generateToken(userDetails);
-
             // Get the user from the database
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
+
+            // Generate JWT token with admin status and userId
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String token = jwtUtil.generateToken(userDetails, user.isAdmin(), user.getId());
 
             // Return the token and user information
             return new AuthResponse(token, UserMapper.toDTO(user));

@@ -31,13 +31,6 @@ public class EventCreateDTO {
     public EventCreateDTO() {
     }
 
-    // Constructor with required fields
-    public EventCreateDTO(String title, LocalDateTime startTime, LocalDateTime endTime) {
-        this.title = title;
-        this.startTime = startTime;
-        this.endTime = endTime;
-    }
-
     // Constructor with all fields
     public EventCreateDTO(String title, LocalDateTime startTime, LocalDateTime endTime,
                           String location, String description) {

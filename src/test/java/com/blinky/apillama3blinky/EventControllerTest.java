@@ -163,7 +163,6 @@ public class EventControllerTest {
 
         // Create update DTO
         EventUpdateDTO updateDTO = new EventUpdateDTO(
-                event.getId(),
                 "Updated Event",
                 event.getStartTime(),
                 event.getEndTime(),
