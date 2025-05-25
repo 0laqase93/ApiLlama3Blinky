@@ -7,11 +7,7 @@ import com.blinky.apillama3blinky.controller.response.PromptResponse;
 import com.blinky.apillama3blinky.exception.ResourceNotFoundException;
 import com.blinky.apillama3blinky.mapping.OllamaMapping;
 import com.blinky.apillama3blinky.mapping.PromptMapping;
-import com.blinky.apillama3blinky.model.AIResponse;
-import com.blinky.apillama3blinky.model.Conversation;
-import com.blinky.apillama3blinky.model.Personality;
-import com.blinky.apillama3blinky.model.User;
-import com.blinky.apillama3blinky.model.UserMessage;
+import com.blinky.apillama3blinky.model.*;
 import com.blinky.apillama3blinky.repository.AIResponseRepository;
 import com.blinky.apillama3blinky.repository.ConversationRepository;
 import com.blinky.apillama3blinky.repository.UserMessageRepository;
@@ -21,15 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class LlamaApiService {
-    private static final String SYSTEM_ROLE = "system";
     private static final String USER_ROLE = "user";
     private static final String ASSISTANT_ROLE = "assistant";
     private static final String DEFAULT_CONVERSATION_NAME_TEMPLATE = "Blinky Conversation: %s";
-    private static final String STARTER_PROMPT_NAME = "StarterBlinky";
 
     @Value("${ia.model}")
     private String iaModel;
@@ -61,7 +54,6 @@ public class LlamaApiService {
         User user = findUserById(promptDTO.getUserId());
         Conversation conversation = getOrCreateConversation(user);
 
-        // Get the personality from the DTO or use the last one from the conversation
         Personality personality = getPersonalityForPrompt(promptDTO, conversation);
 
         UserMessage userMessage = addUserMessageToConversation(conversation, promptDTO.getPrompt());
@@ -72,25 +64,15 @@ public class LlamaApiService {
         return PromptMapping.mapToResponse(iaResponse);
     }
 
-    /**
-     * Get the personality for the prompt
-     * @param promptDTO the prompt DTO
-     * @param conversation the conversation
-     * @return the personality to use
-     * @throws ResourceNotFoundException if the specified personality doesn't exist or no personalities exist
-     */
     private Personality getPersonalityForPrompt(PromptDTO promptDTO, Conversation conversation) {
-        // If personality ID is provided in the DTO, use it
         if (promptDTO.getPersonalityId() != null) {
             try {
                 return personalityService.getPersonalityById(promptDTO.getPersonalityId());
             } catch (ResourceNotFoundException e) {
-                // Rethrow with a more specific message
                 throw new ResourceNotFoundException("La personalidad especificada no existe. Por favor, verifica el ID proporcionado.");
             }
         }
 
-        // Otherwise, try to get the last used personality from the conversation
         if (!conversation.getAiResponses().isEmpty()) {
             AIResponse lastResponse = conversation.getAiResponses().get(conversation.getAiResponses().size() - 1);
             if (lastResponse.getPersonality() != null) {
@@ -98,14 +80,11 @@ public class LlamaApiService {
             }
         }
 
-        // If no personality is specified and none was used before, use a default one
-        // For now, we'll use the first personality in the database
         List<Personality> personalities = personalityService.getAllPersonalities();
         if (!personalities.isEmpty()) {
             return personalities.get(0);
         }
 
-        // If no personalities exist yet, throw an exception
         throw new ResourceNotFoundException("No se encontró ninguna personalidad. Por favor, crea al menos una personalidad.");
     }
 
@@ -126,14 +105,10 @@ public class LlamaApiService {
         Conversation conversation = new Conversation(String.format(DEFAULT_CONVERSATION_NAME_TEMPLATE, user.getEmail()));
         conversation.setUser(user);
 
-        // Note: In the new model, we don't have a concept of system messages yet
-        // This could be added in the future if needed
-
         return conversationRepository.save(conversation);
     }
 
     private UserMessage addUserMessageToConversation(Conversation conversation, String content) {
-        // Use the new model
         UserMessage newUserMessage = new UserMessage(content);
         newUserMessage.setConversation(conversation);
         conversation.getUserMessages().add(newUserMessage);
@@ -141,17 +116,15 @@ public class LlamaApiService {
     }
 
     private AIResponse addAssistantMessageToConversation(Conversation conversation, String content, UserMessage userMessage, Personality personality) {
-        // Use the new model
         AIResponse aiResponse = new AIResponse(content);
         aiResponse.setConversation(conversation);
         aiResponse.setUserMessage(userMessage);
-        aiResponse.setPersonality(personality); // Set the personality
+        aiResponse.setPersonality(personality);
         conversation.getAiResponses().add(aiResponse);
         return aiResponseRepository.save(aiResponse);
     }
 
     private OllamaResponse processPromptWithHistory(Conversation conversation, Personality personality) {
-        // Combine the personality's base prompt with the conversation history
         String basePrompt = personality.getBasePrompt();
         String historyPrompt = buildPromptWithNewModel(conversation);
         String fullPrompt = basePrompt + "\n\n" + historyPrompt;
@@ -160,20 +133,13 @@ public class LlamaApiService {
         return iaService.sendPrompt(ollamaDTO);
     }
 
-    // Build the prompt history from the new model
     private String buildPromptWithNewModel(Conversation conversation) {
         StringBuilder sb = new StringBuilder();
 
-        // System messages don't exist in the new model yet
-        // This could be added in the future if needed
-
-        // Interleave user messages and AI responses in chronological order
-        // This is a simplified approach and might need to be refined based on actual requirements
         for (int i = 0; i < conversation.getUserMessages().size(); i++) {
             UserMessage userMessage = conversation.getUserMessages().get(i);
             sb.append(USER_ROLE).append(": ").append(userMessage.getContent()).append("\n");
 
-            // Find the corresponding AI response
             aiResponseRepository.findByUserMessageId(userMessage.getId())
                     .ifPresent(aiResponse ->
                             sb.append(ASSISTANT_ROLE).append(": ").append(aiResponse.getContent()).append("\n"));
@@ -188,7 +154,6 @@ public class LlamaApiService {
         Conversation conversation = user.getConversation();
 
         if (conversation != null) {
-            // Clear new model messages
             conversation.getUserMessages().clear();
             conversation.getAiResponses().clear();
 

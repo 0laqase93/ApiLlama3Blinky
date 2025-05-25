@@ -20,19 +20,14 @@ public class PathNormalizationFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String requestURI = httpRequest.getRequestURI();
 
-        // Check if the path starts with "api/" instead of "/api/" or if it's exactly "events" or starts with "events/"
         if (requestURI.startsWith("api/") || requestURI.equals("events") || requestURI.startsWith("events/")) {
-            // Determine the normalized path
             String normalizedPath;
             if (requestURI.equals("events") || requestURI.startsWith("events/")) {
-                // If it's "events" or "events/...", prepend "/api/"
                 normalizedPath = "/api/" + requestURI;
             } else {
-                // If it's "api/...", just prepend "/"
                 normalizedPath = "/" + requestURI;
             }
 
-            // Wrap the request to normalize the path
             final String finalNormalizedPath = normalizedPath;
             HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(httpRequest) {
                 @Override
@@ -46,10 +41,8 @@ public class PathNormalizationFilter implements Filter {
                 }
             };
 
-            // Continue with the wrapped request
             chain.doFilter(wrappedRequest, response);
         } else {
-            // Continue with the original request
             chain.doFilter(request, response);
         }
     }

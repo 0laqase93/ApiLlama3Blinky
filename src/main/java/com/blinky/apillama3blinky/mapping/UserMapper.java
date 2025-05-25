@@ -57,9 +57,6 @@ public class UserMapper {
         return user;
     }
 
-    /**
-     * Converts a User entity to a UserResponseDTO (without password)
-     */
     public static UserResponseDTO toResponseDTO(User user) {
         if (user == null) {
             return null;
@@ -73,9 +70,6 @@ public class UserMapper {
         );
     }
 
-    /**
-     * Converts a list of User entities to a list of UserResponseDTOs
-     */
     public static List<UserResponseDTO> toResponseDTOList(List<User> users) {
         return users.stream()
                 .map(UserMapper::toResponseDTO)
