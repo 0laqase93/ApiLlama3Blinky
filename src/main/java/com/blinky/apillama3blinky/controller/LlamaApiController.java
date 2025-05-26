@@ -28,8 +28,16 @@ public class LlamaApiController {
 
     @PostMapping("/send_prompt")
     public ResponseEntity<PromptResponse> sendPrompt(@Valid @RequestBody PromptDTO promptDTO, HttpServletRequest request) {
-        promptDTO = jwtUtil.setUserIdInPromptDTO(request, promptDTO);
+        Long userId = jwtUtil.getUserIdFromRequest(request);
 
-        return ResponseEntity.ok(llamaApiService.sendPrompt(promptDTO));
+        return ResponseEntity.ok(llamaApiService.sendPrompt(promptDTO, userId));
+    }
+
+    @PostMapping("/clear_conversation")
+    public ResponseEntity<Void> clearConversation(HttpServletRequest request) {
+        Long userId = jwtUtil.getUserIdFromRequest(request);
+
+        llamaApiService.clearConversation(userId.toString());
+        return ResponseEntity.ok().build();
     }
 }

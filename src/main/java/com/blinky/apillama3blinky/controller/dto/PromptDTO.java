@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank;
 public class PromptDTO {
     @NotBlank(message = "El prompt no puede estar vacío")
     private String prompt;
-    private Long userId;
     private Long personalityId;
 
     public PromptDTO() {
@@ -26,14 +25,6 @@ public class PromptDTO {
 
     public void setPrompt(String prompt) {
         this.prompt = prompt;
-    }
-
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
     }
 
     public Long getPersonalityId() {

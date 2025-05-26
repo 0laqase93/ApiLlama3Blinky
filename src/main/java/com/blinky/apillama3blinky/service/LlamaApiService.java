@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class LlamaApiService {
@@ -54,8 +53,8 @@ public class LlamaApiService {
     }
 
     @Transactional
-    public PromptResponse sendPrompt(PromptDTO promptDTO) {
-        User user = findUserById(promptDTO.getUserId());
+    public PromptResponse sendPrompt(PromptDTO promptDTO, Long userId) {
+        User user = findUserById(userId);
         Conversation conversation = getOrCreateConversation(user);
 
         Personality personality = getPersonalityForPrompt(promptDTO, conversation);
@@ -68,24 +67,13 @@ public class LlamaApiService {
         return PromptMapping.mapToResponse(iaResponse);
     }
 
-    /**
-     * Gets the personality to use for a prompt, using the cache to avoid database queries.
-     *
-     * @param promptDTO the prompt DTO containing the personality ID
-     * @param conversation the conversation
-     * @return the personality to use
-     * @throws ResourceNotFoundException if no personality is found
-     */
     private Personality getPersonalityForPrompt(PromptDTO promptDTO, Conversation conversation) {
-        // If a personality ID is specified in the prompt, use it
         if (promptDTO.getPersonalityId() != null) {
-            // Get the personality from the cache instead of querying the database
             return personalityCache.getPersonalityById(promptDTO.getPersonalityId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "La personalidad especificada no existe. Por favor, verifica el ID proporcionado."));
         }
 
-        // If the conversation has previous responses, use the personality from the last response
         if (!conversation.getAiResponses().isEmpty()) {
             AIResponse lastResponse = conversation.getAiResponses().get(conversation.getAiResponses().size() - 1);
             if (lastResponse.getPersonality() != null) {
@@ -93,7 +81,6 @@ public class LlamaApiService {
             }
         }
 
-        // Otherwise, use the first personality in the cache
         return personalityCache.getFirstPersonality()
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "No se encontró ninguna personalidad. Por favor, crea al menos una personalidad."));
@@ -104,19 +91,11 @@ public class LlamaApiService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
     }
 
-    /**
-     * Gets an existing conversation for a user or creates a new one if none exists.
-     * Uses fetch join to load all messages and responses in a single query.
-     *
-     * @param user the user
-     * @return the conversation with all messages and responses loaded
-     */
     private Conversation getOrCreateConversation(User user) {
         Conversation conversation = user.getConversation();
         if (conversation == null) {
             conversation = initializeNewConversation(user);
         } else {
-            // Use the fetch join method to load all messages and responses in a single query
             conversation = conversationRepository.findWithMessagesAndResponses(conversation.getId())
                     .orElse(conversation);
         }
@@ -146,13 +125,6 @@ public class LlamaApiService {
         return aiResponseRepository.save(aiResponse);
     }
 
-    /**
-     * Processes a prompt with conversation history, using a sliding window approach.
-     * 
-     * @param conversation the conversation containing the history
-     * @param personality the personality to use for the response
-     * @return the response from the AI model
-     */
     private OllamaResponse processPromptWithHistory(Conversation conversation, Personality personality) {
         String basePrompt = personality.getBasePrompt();
         // Use a window size of 8 as specified in the requirements
@@ -163,28 +135,16 @@ public class LlamaApiService {
         return iaService.sendPrompt(ollamaDTO);
     }
 
-    /**
-     * Builds a prompt with the last N interactions from the conversation history.
-     * This implements a sliding window approach to limit the number of tokens sent to the model.
-     *
-     * @param conversation the conversation containing the history
-     * @param windowSize the maximum number of interactions to include
-     * @return a string containing the formatted conversation history
-     */
     private String buildPromptWithWindow(Conversation conversation, int windowSize) {
         StringBuilder sb = new StringBuilder();
         List<UserMessage> userMessages = conversation.getUserMessages();
 
-        // Calculate the starting index to get only the last windowSize messages
         int startIndex = Math.max(0, userMessages.size() - windowSize);
 
-        // Process only the messages within the window
         for (int i = startIndex; i < userMessages.size(); i++) {
             UserMessage userMessage = userMessages.get(i);
             sb.append(USER_ROLE).append(": ").append(userMessage.getContent()).append("\n");
 
-            // Find the AI response for this user message from the conversation's aiResponses list
-            // This avoids making a separate database query for each message
             conversation.getAiResponses().stream()
                     .filter(ar -> ar.getUserMessage() != null && ar.getUserMessage().getId().equals(userMessage.getId()))
                     .findFirst()
@@ -195,9 +155,6 @@ public class LlamaApiService {
         return sb.toString();
     }
 
-    /**
-     * @deprecated Use buildPromptWithWindow instead to limit the number of tokens
-     */
     @Deprecated
     private String buildPromptWithNewModel(Conversation conversation) {
         return buildPromptWithWindow(conversation, conversation.getUserMessages().size());

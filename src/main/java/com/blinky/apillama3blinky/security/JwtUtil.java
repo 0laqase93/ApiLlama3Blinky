@@ -274,11 +274,6 @@ public class JwtUtil {
         return true;
     }
 
-    public PromptDTO setUserIdInPromptDTO(HttpServletRequest request, PromptDTO promptDTO) {
-        Long userId = getUserIdFromRequest(request);
-        promptDTO.setUserId(userId);
-        return promptDTO;
-    }
 
     public Event createEventForUser(HttpServletRequest request, com.blinky.apillama3blinky.controller.dto.EventCreateDTO eventCreateDTO) {
         Long userId = getUserIdFromRequest(request);

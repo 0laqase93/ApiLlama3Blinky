@@ -28,6 +28,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -38,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 
  * This test class provides complete test coverage for all LlamaApiController endpoints:
  * - POST /api/llama/send_prompt (send a prompt to the LLM)
+ * - POST /api/llama/clear_conversation (clear the user's conversation history)
  * 
  * Testing strategy:
  * 1. Tests both positive and negative scenarios for each endpoint
@@ -104,7 +108,8 @@ public class LlamaApiControllerIntegrationTest {
 
         // Mock the LlamaApiService
         PromptResponse mockResponse = new PromptResponse("This is a mock response from the LLM");
-        when(llamaApiService.sendPrompt(any(PromptDTO.class))).thenReturn(mockResponse);
+        when(llamaApiService.sendPrompt(any(PromptDTO.class), any(Long.class))).thenReturn(mockResponse);
+        doNothing().when(llamaApiService).clearConversation(anyString());
     }
 
     @AfterEach
@@ -159,6 +164,28 @@ public class LlamaApiControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(promptDTO)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+    }
+
+    // ========== POST /api/llama/clear_conversation (Clear Conversation) Tests ==========
+
+    @Test
+    public void testClearConversation_AsAuthenticatedUser_ShouldSucceed() throws Exception {
+        // Send request as regular user
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/llama/clear_conversation")
+                .header("Authorization", "Bearer " + regularUserToken))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        // Verify that the service method was called with the correct user ID
+        verify(llamaApiService).clearConversation(regularUser.getId().toString());
+    }
+
+    @Test
+    public void testClearConversation_WithoutAuth_ShouldReturnForbidden() throws Exception {
+        // Send request without auth token
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/llama/clear_conversation"))
+                .andDo(print())
+                .andExpect(status().isForbidden());
     }
 
     // ========== Helper Methods ==========

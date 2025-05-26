@@ -23,9 +23,11 @@ public class Conversation {
 
 
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderColumn(name = "message_order")
     private List<UserMessage> userMessages = new ArrayList<>();
 
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderColumn(name = "response_order")
     private List<AIResponse> aiResponses = new ArrayList<>();
 
     public Conversation() {
