@@ -20,6 +20,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Service responsible for user authentication and registration.
+ * Provides methods for user registration, login, and password management.
+ */
 @Service
 public class AuthService {
 
@@ -33,6 +37,13 @@ public class AuthService {
         this.authenticationManager = authenticationManager;
     }
 
+    /**
+     * Registers a new user in the system.
+     * 
+     * @param user The user entity to register
+     * @return The registered user entity with generated ID
+     * @throws EmailAlreadyInUseException if the email is already registered
+     */
     @Transactional
     public User registerUser(User user) {
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
@@ -42,6 +53,13 @@ public class AuthService {
         return userRepository.save(user);
     }
 
+    /**
+     * Registers a new user from a DTO and generates a JWT token.
+     * 
+     * @param registerDTO Data transfer object containing registration information
+     * @return Authentication response containing the JWT token and user details
+     * @throws EmailAlreadyInUseException if the email is already registered
+     */
     @Transactional
     public AuthResponse registerUserFromDTO(com.blinky.apillama3blinky.controller.dto.RegisterDTO registerDTO) {
         if (userRepository.findByEmail(registerDTO.getEmail()).isPresent()) {
@@ -68,6 +86,14 @@ public class AuthService {
         return new AuthResponse(token, UserMapper.toDTO(savedUser));
     }
 
+    /**
+     * Authenticates a user and generates a JWT token.
+     * 
+     * @param loginDTO Data transfer object containing login credentials
+     * @return Authentication response containing the JWT token and user details
+     * @throws ResourceNotFoundException if the user is not found
+     * @throws InvalidPasswordException if the password is incorrect
+     */
     @Transactional(readOnly = true)
     public AuthResponse loginUser(LoginDTO loginDTO) {
         try {
@@ -90,16 +116,35 @@ public class AuthService {
         }
     }
 
+    /**
+     * Resets a user's password and returns an appropriate HTTP response.
+     * 
+     * @param resetPasswordDTO Data transfer object containing the new password
+     * @param request The HTTP request containing the JWT token for user authentication
+     * @return Response entity indicating success or failure of the password reset
+     */
     @Transactional
     public ResponseEntity<Boolean> resetPasswordWithResponse(ResetPasswordDTO resetPasswordDTO, HttpServletRequest request) {
         return jwtUtil.resetPasswordWithResponse(request, resetPasswordDTO.getNewPassword());
     }
 
+    /**
+     * Verifies if a provided password matches the user's current password.
+     * 
+     * @param verifyPasswordDTO Data transfer object containing the password to verify
+     * @param request The HTTP request containing the JWT token for user authentication
+     * @return Response entity indicating if the password is valid
+     */
     @Transactional(readOnly = true)
     public ResponseEntity<Boolean> verifyPasswordWithResponse(VerifyPasswordDTO verifyPasswordDTO, HttpServletRequest request) {
         return jwtUtil.verifyPasswordWithResponse(request, verifyPasswordDTO.getPassword());
     }
 
+    /**
+     * Simple health check endpoint to verify the service is running.
+     * 
+     * @return Response entity with a "Pong!" message
+     */
     public ResponseEntity<String> ping() {
         return ResponseEntity.ok("Pong!");
     }
