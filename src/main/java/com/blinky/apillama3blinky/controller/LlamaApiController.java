@@ -1,5 +1,6 @@
 package com.blinky.apillama3blinky.controller;
 
+import com.blinky.apillama3blinky.controller.dto.EventDTO;
 import com.blinky.apillama3blinky.controller.dto.PromptDTO;
 import com.blinky.apillama3blinky.controller.response.PromptResponse;
 import com.blinky.apillama3blinky.security.JwtUtil;
@@ -32,9 +33,9 @@ public class LlamaApiController {
 
     /**
      * Endpoint for sending a prompt to the AI model.
-     * 
+     *
      * @param promptDTO The prompt data transfer object containing the user's message and optional personality ID
-     * @param request The HTTP request containing the JWT token for user authentication
+     * @param request   The HTTP request containing the JWT token for user authentication
      * @return A response entity containing the AI's reply
      */
     @PostMapping("/send_prompt")
@@ -48,7 +49,7 @@ public class LlamaApiController {
 
     /**
      * Endpoint for clearing a user's conversation history.
-     * 
+     *
      * @param request The HTTP request containing the JWT token for user authentication
      * @return An empty response with HTTP 200 OK status
      */
@@ -60,5 +61,44 @@ public class LlamaApiController {
         // Clear the user's conversation history
         llamaApiService.clearConversation(userId.toString());
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Endpoint for creating an event using AI.
+     * The AI will generate event details based on the user's prompt.
+     *
+     * @param promptDTO The prompt data transfer object containing the user's message
+     * @param request   The HTTP request containing the JWT token for user authentication
+     * @return A response entity containing the created event's details
+     */
+    @PostMapping("/create_event")
+    public ResponseEntity<EventDTO> createEventWithAI(@Valid @RequestBody PromptDTO promptDTO, HttpServletRequest request) {
+        // Extract the user ID from the JWT token
+        Long userId = jwtUtil.getUserIdFromRequest(request);
+
+        // Process the prompt and create an event
+        EventDTO createdEvent = llamaApiService.createEventWithAI(promptDTO, userId);
+
+        return ResponseEntity.ok(createdEvent);
+    }
+
+    /**
+     * Endpoint for creating a future event using AI.
+     * The AI will generate event details based on the user's prompt,
+     * ensuring that the event is scheduled in the future.
+     *
+     * @param promptDTO The prompt data transfer object containing the user's message
+     * @param request   The HTTP request containing the JWT token for user authentication
+     * @return A response entity containing the created event's details
+     */
+    @PostMapping("/create_future_event")
+    public ResponseEntity<EventDTO> createFutureEventWithAI(@Valid @RequestBody PromptDTO promptDTO, HttpServletRequest request) {
+        // Extract the user ID from the JWT token
+        Long userId = jwtUtil.getUserIdFromRequest(request);
+
+        // Process the prompt and create a future event
+        EventDTO createdEvent = llamaApiService.createFutureEventWithAI(promptDTO, userId);
+
+        return ResponseEntity.ok(createdEvent);
     }
 }

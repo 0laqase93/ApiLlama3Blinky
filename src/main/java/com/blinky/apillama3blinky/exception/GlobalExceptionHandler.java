@@ -78,6 +78,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ForbiddenEventException.class)
+    public ResponseEntity<ErrorResponse> handleForbiddenEventException(ForbiddenEventException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
         // Log the exception for debugging

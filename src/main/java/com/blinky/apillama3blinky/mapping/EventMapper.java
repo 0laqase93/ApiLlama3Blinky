@@ -27,6 +27,22 @@ public class EventMapper {
         );
     }
 
+    public static EventDTO createDTOFromCreateDTO(EventCreateDTO createDTO, Long userId) {
+        if (createDTO == null) {
+            return null;
+        }
+
+        return new EventDTO(
+                null, // No ID since the event hasn't been created yet
+                createDTO.getTitle(),
+                createDTO.getStartTime(),
+                createDTO.getEndTime(),
+                userId,
+                createDTO.getLocation(),
+                createDTO.getDescription()
+        );
+    }
+
     public static List<EventDTO> toDTOList(List<Event> events) {
         if (events == null) {
             return null;
